@@ -166,14 +166,19 @@ end
 function Controller()
 	if btn(c.l) then
 		p.vx=-p.vmax
-		p.idx=s.run+t%80//10*2
+		if p.grounded then
+			p.idx=s.run+t%80//10*2
+			t=time()//5
+		end
 		p.flp=0
-		t=time()//5
 	elseif btn(c.r) then 
 		p.vx=p.vmax
-		p.idx=s.run+t%80//10*2
+		if p.grounded then
+			p.idx=s.run+t%80//10*2
+			t=time()//5
+		end
 		p.flp=1
-		t=time()//5
+		--t=time()//5
 	else
 		p.vx=0
 		p.idx=s.idle+t%40//10*2
@@ -208,6 +213,7 @@ function Controller()
 	
 	if p.vy==0 and btnp(c.z) then 
 		p.vy=-3
+		p.idx=s.jump
 		p.grounded=false
 	end
 	--check if something is above
