@@ -18,7 +18,7 @@ del=table.remove
 w,h=240,136
 hw,hh=w/2,h/2
 
-indicatorsOn=false
+indicatorsOn=true
 --Setup camera coordinates
 cam={
 	x=0,
@@ -122,17 +122,28 @@ function Init()
 end
 
 function OVR()
-	print("FPS: "..fps:getValue(),w-23,0,12,false,1,true)
-	print("Indicators: " ..tostring(indicatorsOn),9,0,15,false,1,true)
-	print("MaxV: "..flr(p.vy),9,8,15,false,1,true)
-	print("Grounded: "..tostring(p.grounded),40,8,15,false,1,true)
-	print("X: "..p.x,1,16,15,false,1,true)
-	print("Y: "..p.y,1,24,15,false,1,true)
-	print("Check X: "..p.cpX,1,32,15,false,1,true)
-	print("Check Y: "..p.cpY,1,40,15,false,1,true)
-	print("Pit: "..tostring(pit),1,48,15,false,1,true)
-		
+	Debug()
+	--[[y needs to be changed to go off of the players location
+	based on map grids]]
+	if p.y<64 then
+		rect(0,128,w,10,7)
+	elseif p.y>64 then
+		rect(0,0,w,10,7)
+	end
+end
+
+function Debug()
 	if indicatorsOn==true then
+		print("FPS: "..fps:getValue(),w-23,0,12,false,1,true)
+		print("Indicators: " ..tostring(indicatorsOn),9,0,15,false,1,true)
+		print("MaxV: "..flr(p.vy),9,8,15,false,1,true)
+		print("Grounded: "..tostring(p.grounded),40,8,15,false,1,true)
+		print("X: "..p.x,1,16,15,false,1,true)
+		print("Y: "..p.y,1,24,15,false,1,true)
+		print("Check X: "..p.cpX,1,32,15,false,1,true)
+		print("Check Y: "..p.cpY,1,40,15,false,1,true)
+		print("Pit: "..tostring(pit),1,48,15,false,1,true)
+		
 		--Collision indicators
 		pix(p.x+coll.tlx+p.vx-cam.x,p.y%136+coll.tly+p.vy,6) --top left
 		pix(p.x+coll.trx+p.vx-cam.x,p.y%136+coll.tly+p.vy,6) --top right
@@ -193,9 +204,9 @@ function TIC()
 	
 	pix(p.x+8,p.y,2)
 	pix(p.x+8,p.y+7,2)]]
-	if btnp(c.a) and indicatorsOn==false then
+	if keyp(9) and indicatorsOn==false then
 		indicatorsOn=true
-	elseif btnp(c.a) and indicatorsOn==true then
+	elseif keyp(9) and indicatorsOn==true then
 		indicatorsOn=false
 	end
 	if btnp(0) then
