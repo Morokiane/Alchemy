@@ -55,7 +55,7 @@ p={
 	curLife=2,
 	maxLife=3,
 	coins=0,
-	stab=46,
+	stab=51,
 	s={
 		idle=256,
 		run=288,
@@ -109,7 +109,7 @@ t=0
 ti=0
 
 pit=false
-meterY=17
+meterY=16
 
 checkpoint=false
 dust={}
@@ -133,25 +133,25 @@ end
 
 function HUD()
 	--BG Rectangles
-	rect(1,1,15,72,12)
+	rect(1,1,15,77,12)
 	rect(15,1,44,14,12)
 	--HUD border
-	line(15,15,15,72,7)
-	line(0,72,14,72,7)
+	line(15,15,15,78,7)
+	line(0,78,14,78,7)
 	line(16,15,58,15,7)
 	line(59,0,59,15,7)
 	line(0,0,58,0,7)
-	line(0,0,0,72,7)
+	line(0,0,0,77,7)
 	--Coin
 	spr(449,4,4,0)
 	print("x"..p.coins,13,6,7,true,1,false)
 	--Potion
 	rect(7,meterY,2,p.stab,11)
-	spr(453,4,63,0)
+	spr(453,4,68,0)
 	line(7,15,8,15,7)
-	line(6,16,6,61,7)
-	line(9,16,9,61,7)
-	line(7,62,8,62,7)
+	line(6,16,6,65,7)
+	line(9,16,9,65,7)
+	line(7,66,8,66,7)
 	--Hearts
 	for num=1,p.maxLife do
 		spr(452,25+8*num,4,0)
