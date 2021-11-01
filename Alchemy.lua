@@ -56,6 +56,7 @@ p={
 	maxLife=3,
 	coins=0,
 	stab=51,
+	stabpot=3,
 	s={
 		idle=256,
 		run=288,
@@ -103,7 +104,7 @@ m={
 tileAnims={
 	[240]={s=.1,f=4},
 	[432]={s=.1,f=4},
-	[244]={s=.1,f=5}
+	[244]={s=.05,f=5}
 }
 
 t=0
@@ -174,7 +175,7 @@ function HUD()
 	end
 	--Stabilizer
 	spr(454,58,4,0)
-	print("x"..p.coins,66,6,7,true,1,false)
+	print("x"..p.stabpot,66,6,7,true,1,false)
 	
 	--[[y needs to be changed to go off of the players location
 	based on map grids]]
@@ -293,6 +294,7 @@ function Update()
 	Pit()
 	Quest()
 	CheckPoint()
+	Stabilizer()
 end
 
 function Mouse()
@@ -383,7 +385,6 @@ function Controller(o)
 		p.stab=p.stab-.5
 		meterY=meterY+.5
 	end
-	
 	--[[if the sprite is tile 2 and has flag 2 either set
 	as true or false]]
 	if p.grounded==true then
@@ -415,6 +416,18 @@ function Collectiables()
 	end
 end
 
+function Stabilizer()
+	if btnp(c.x) and p.stabpot>0 and p.stab>=31 and p.stab<=51 then
+		p.stab=51
+		meterY=16
+		p.stabpot=p.stabpot-1
+	elseif btnp(c.x) and p.stab<31 and p.stabpot>0 then
+		p.stab=p.stab+15
+		meterY=meterY-15
+		p.stabpot=p.stabpot-1
+	end
+end
+
 function Pit()
 	if mget(p.x//8+1,p.y//8)==s.pit then
 		--pit=true
@@ -440,8 +453,9 @@ function Quest()
 		print(quest[counter],0,24,12)
 	end
 	switch(action,
-		case(quest[1],function() QuestOne() end),
-		case(quest[2],function() QuestTwo() end),
+		case(quest[1],function() NoQuest() end),
+		case(quest[2],function() QuestOne() end),
+		case(quest[3],function() QuestTwo() end),
 		default(function() print("No Quest",72,0,7) end)
 	)
 
@@ -454,13 +468,19 @@ function Quest()
 	--spr(p.idx,p.x-cam.x,p.y%136,5,1,p.flp,0,2,2)
 end
 
+function NoQuest()
+	print("No quest",w/2,0,7)
+	spr(464,8-cam.x,104-cam.y,0,1,0,0,2,3)
+end
+
 function QuestOne()
 	print("Quest One",w/2,0,7)
 	spr(464,8-cam.x,104-cam.y,0,1,0,0,2,3)
 end
 
 function QuestTwo()
-	print("Quest Two",160/2,0,7)
+	print("Quest Two",w/2,0,7)
+	spr(464,8-cam.x,104-cam.y,0,1,0,0,2,3)
 end
 
 function AddEnt(t)
