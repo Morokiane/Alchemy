@@ -12,7 +12,7 @@ rad=math.rad
 sin=math.sin
 max=math.max
 min=math.min
-local rand=math.random
+rand=math.random
 del=table.remove
 
 dc=7
@@ -124,9 +124,7 @@ tileAnims={
 }
 
 t=0
---ti is time for the animated tiles
-ti=0
-tic=0
+ti=0 --ti is time for the animated tiles
 
 pit=false
 meterY=16
@@ -148,6 +146,7 @@ screenShake={
 	duration=15,
 	power=3
 }
+
 function Init()
 	p.cpX=p.x
 	p.cpY=p.y
@@ -215,8 +214,8 @@ end
 function Debug()
 	if indicatorsOn==true then
 		print("FPS: "..fps:getValue(),w-23,0,dc,false,1,true)
-		print("Indicators: " ..tostring(indicatorsOn),9,0,dc,false,1,true)
-		print("MaxV: "..flr(p.vy),9,8,dc,false,1,true)
+		print("Indicators: " ..tostring(indicatorsOn),1,0,dc,false,1,true)
+		print("MaxV: "..flr(p.vy),1,8,dc,false,1,true)
 		print("Grounded: "..tostring(p.grounded),40,8,dc,false,1,true)
 		print("X: "..p.x,1,16,dc,false,1,true)
 		print("Y: "..p.y,1,24,dc,false,1,true)
@@ -225,6 +224,7 @@ function Debug()
 		print("Pit: "..tostring(pit),1,48,dc,false,1,true)
 		print("Fall: "..p.vy,1,56,dc,false,1,true)
 		print("Dmgd: "..tostring(p.damaged),1,64,dc,false,1,true)
+		print("Timer: "..timer,1,72,dc,false,1,true)
 		
 		--Collision indicators
 		pix(p.x+coll.tlx+p.vx-cam.x,p.y%136+coll.tly+p.vy,6) --top left
@@ -298,6 +298,7 @@ function TIC()
 	elseif keyp(9) and indicatorsOn==true then
 		indicatorsOn=false
 	end
+	
 	if btnp(0) then
 		table.insert(quest,sNum)
 		sNum=sNum+1
@@ -324,7 +325,7 @@ end
 
 function Update()
 	DrawEnt()
-	Controller()
+	Player()
 	Collectiables()
 	Pit()
 	Quest()
@@ -351,7 +352,7 @@ function psfx(o,i)
 	end 
 end
 
-function Controller(o)
+function Player()
 	--this enables a running
 	if p.canMove==true then
 		if btn(c.r) and btn(c.a) then
@@ -432,7 +433,7 @@ function Controller(o)
 	end
 	--jump
 	if p.vy==0 and btnp(c.z) then 
-		p.vy=-3
+		p.vy=-3.1
 		p.grounded=false
 		p.stab=p.stab-1
 		meterY=meterY+1
@@ -457,6 +458,13 @@ function Controller(o)
 		fset(p.s.thru,1,true)
 	elseif p.grounded==true then
 		fset(p.s.thru,1,false)
+	end
+	
+	if p.x<mapStart then
+		p.x=mapStart
+	end
+	if p.x>mapEnd-8 then
+		p.x=mapEnd-8
 	end
 
 	p.x=p.x+p.vx
@@ -509,7 +517,6 @@ function Blinky()
 		p.damaged=false
 		timer=0
 	end
-	print(timer,64,64,7)
 end
 
 function Stabilizer()
@@ -648,8 +655,8 @@ function DrawEnt()
 		
 		if v.x//8==p.x//8 and v.y//8+1==p.y//8 and not p.damaged and not p.ducking then
 			print("hit",p.x-8-cam.x,p.y-cam.y,7)
-			p.stab=p.stab-.5
-			meterY=meterY+.5
+			p.stab=p.stab-10
+			meterY=meterY+10
 			screenShake.active=true
 			p.damaged=true
 		end
@@ -697,7 +704,6 @@ function ShakeScreen()
 		if screenShake.duration<=0 then
 			screenShake.active=false
 		end
-
  else
   memset(0x3FF9,0,2)
   screenShake.active=false
@@ -824,7 +830,7 @@ fps=FPS:new()
 -- 067:0000000000000000000000000000000000000000000000002221000024211000
 -- 080:0000122300001233000011110000132200001111000012310000011100000000
 -- 081:3331231032112210112121003311100011110000122100001131000001110000
--- 082:0001444400114442001222220001222200011133000111130001331100013311
+-- 082:0001444400114442001222220001222200011133000111130001311100013311
 -- 083:2212110022112110231122212111111111441111314411101111311011111100
 -- 160:3330000023330000022300000002330200002222000022210002111200211311
 -- 161:0000033300003332000332202332200011200000111000001110000021000000
