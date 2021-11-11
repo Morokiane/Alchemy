@@ -65,7 +65,7 @@ p={
 		run=288,
 		jump=264,
 		fall=320,
-		dead=296,
+		dead=270,
 		thru=2,
 		duck=322
 	},
@@ -129,8 +129,6 @@ ti=0 --ti is time for the animated tiles
 pit=false
 meterY=16
 
-checkpoint=false
-dust={}
 quest={}
 store={}
 sNum=0
@@ -189,15 +187,6 @@ function HUD()
 	for num=1,p.curLife do
 		spr(451,-4+8*num,4,0)
 	end
-	
-	if p.stab<=0 then
-		p.curLife=p.curLife-1
-		p.x=p.cpX
-		p.y=p.cpY
-		p.flp=p.cpF
-		p.stab=51
-		meterY=16
-	end
 	--Stabilizer
 	spr(454,58,4,0)
 	print("x"..p.stabpot,66,6,1,true,1,false)
@@ -217,6 +206,8 @@ function Debug()
 		print("Indicators: " ..tostring(indicatorsOn),1,0,dc,false,1,true)
 		print("MaxV: "..flr(p.vy),1,8,dc,false,1,true)
 		print("Grounded: "..tostring(p.grounded),40,8,dc,false,1,true)
+		print("Life: "..p.curLife,40,16,dc,false,1,true)
+		print("Move: "..tostring(p.canMove),40,24,dc,false,1,true)
 		print("X: "..p.x,1,16,dc,false,1,true)
 		print("Y: "..p.y,1,24,dc,false,1,true)
 		print("Check X: "..p.cpX,1,32,dc,false,1,true)
@@ -262,15 +253,6 @@ function TIC()
 	if cam.x>mapEnd-232 then
 		cam.x=mapEnd-232
 	end
-
-	--Uncomment for one screen map
-	--map()
-	--spr(258,p.x,p.y,0,1,1,0,2,2)
-	
-	--Uncomment for scrolling in all directions
-	--map(cam.x//8,cam.y//8,31,18,-(cam.x%8),-(cam.y%8),0,1,remap)
-	--spr(258,p.x-cam.x,p.y-cam.y,0,1,1,0,2,2)
-	
 	--Scrolling only along X but loading full map grid on Y
 	map(cam.x//8,(p.y//136)*17,31,18,-(cam.x%8),-(cam.y%8),0,1,remap)
 	if p.damaged then
@@ -280,19 +262,7 @@ function TIC()
  else
  	spr(p.idx,p.x-cam.x,p.y%136,0,1,p.flp,0,2,2)
  end
-	
-	--[[Collison pix for 8x8 sprite
-	pix(p.x,p.y-1,2)
-	pix(p.x+15,p.y-1,2)
-	
-	pix(p.x,p.y+8,2)
-	pix(p.x+7,p.y+8,2)
-	
-	pix(p.x-1,p.y,2)
-	pix(p.x-1,p.y+7,2)
-	
-	pix(p.x+8,p.y,2)
-	pix(p.x+8,p.y+7,2)]]
+ 
 	if keyp(9) and indicatorsOn==false then
 		indicatorsOn=true
 	elseif keyp(9) and indicatorsOn==true then
@@ -354,7 +324,7 @@ end
 
 function Player()
 	--this enables a running
-	if p.canMove==true then
+	if p.canMove then
 		if btn(c.r) and btn(c.a) then
 			p.vx=p.vmax+1
 			if p.grounded then
@@ -393,7 +363,15 @@ function Player()
 			t=time()//30
 		end
 	end
-	
+	--jump
+	if p.vy==0 and btnp(c.z) and p.canMove and not p.ducking then
+		p.vy=-3.6
+		p.grounded=false
+		p.stab=p.stab-1
+		meterY=meterY+1
+		--psfx(o,1)
+	end
+	--duck
 	if btn(c.d) and p.vx==0 then
 		p.idx=p.s.duck
 		p.ducking=true
@@ -431,14 +409,6 @@ function Player()
 		p.idx=p.s.fall
 		p.grounded=false
 	end
-	--jump
-	if p.vy==0 and btnp(c.z) and not p.ducking then 
-		p.vy=-3.1
-		p.grounded=false
-		p.stab=p.stab-1
-		meterY=meterY+1
-		--psfx(o,1)
-	end
 	--check if something is above
 	if p.vy<0 and (solid(p.x+coll.tlx+p.vx,p.y+coll.tly+p.vy,0) or 
 																solid(p.x+coll.trx+p.vx,p.y+coll.tly+p.vy,0) or
@@ -451,10 +421,9 @@ function Player()
 																solid(p.x+8+p.vx,p.y+coll.tly+p.vy,1)) then
 		fset(p.s.thru,1,false)
 	end
-
 	--[[if the sprite is tile 2 and has flag 1 either set
 	as true or false]]
-	if p.grounded and not btnp(c.d) then
+	if p.grounded and not btnp(c.d) and p.canMove then
 		fset(p.s.thru,1,true)
 	elseif p.grounded then
 		fset(p.s.thru,1,false)
@@ -475,25 +444,16 @@ function Player()
 	p.y=p.y+p.vy
 	
 	Damage()
+	--Dead()
 end
 
-function Collectiables()
-	--[[Collisions with collectibles can be done either with
-	flags set on the sprites, or by looking for the actual
-	sprite itself.]]
-	--rectb(p.x-1,p.y+1,8,8,7)
-	if mget(p.x//8+1,p.y//8+1)==s.coin then
-		mset(p.x/8+1,p.y/8+1,0)
-		p.coins=p.coins+1
-		--table.remove(ents,i)
-		--sfx(01,'E-6',5)
-	end
-	if mget(p.x//8+1,p.y//8+1)==s.heart and p.curLife<3 then
-		mset(p.x/8+1,p.y/8+1,0)
-		p.curLife=p.curLife+1
-		--table.remove(ents,i)
-		--sfx(01,'E-6',5)
-	end
+function Dead()
+	if p.curLife==0 then
+		p.canMove=false
+		p.stab=0
+		print("Dead!",p.x,p.y-5,7)
+		p.idx=p.s.dead
+	end 
 end
 --[[should probably move the p.stab/meterY to its own
 function then return it back]]
@@ -511,6 +471,16 @@ function Damage()
 		meterY=meterY+5
 		screenShake.active=true
 		p.damaged=true
+	end
+	if p.stab<=0 and p.curLife>0 then
+		p.curLife=p.curLife-1
+		p.x=p.cpX
+		p.y=p.cpY
+		p.flp=p.cpF
+		p.stab=51
+		meterY=16
+	elseif p.curLife<=0 then
+		Dead()
 	end
 end
 
@@ -557,10 +527,10 @@ end
 
 function Pit()
 	if mget(p.x//8+1,p.y//8)==s.pit then
-		--pit=true
 		p.x=p.cpX
 		p.y=p.cpY
 		p.flp=p.cpF
+		p.curLife=p.curLife-1
 	end
 end
 
@@ -570,7 +540,25 @@ function CheckPoint()
 		p.cpX=p.x
 		p.cpY=p.y
 		p.cpF=p.flp
-		checkpoint=true
+	end
+end
+
+function Collectiables()
+	--[[Collisions with collectibles can be done either with
+	flags set on the sprites, or by looking for the actual
+	sprite itself.]]
+	--rectb(p.x-1,p.y+1,8,8,7)
+	if mget(p.x//8+1,p.y//8+1)==s.coin then
+		mset(p.x/8+1,p.y/8+1,0)
+		p.coins=p.coins+1
+		--table.remove(ents,i)
+		--sfx(01,'E-6',5)
+	end
+	if mget(p.x//8+1,p.y//8+1)==s.heart and p.curLife<3 then
+		mset(p.x/8+1,p.y/8+1,0)
+		p.curLife=p.curLife+1
+		--table.remove(ents,i)
+		--sfx(01,'E-6',5)
 	end
 end
 
@@ -584,7 +572,6 @@ function Quest()
 		case(quest[3],function() QuestTwo() end),
 		default(function() print("No Quest",72,0,7) end)
 	)
-
 	--fset(481,0,true)
 	if mget(p.x//8,p.y//8)==17 then
 		--mset(24,104,352)
@@ -778,8 +765,8 @@ fps=FPS:new()
 -- 011:0000000000000000000000002222100032421100422132102221231022312310
 -- 012:0000000000000000000000000000000000012223000013330000144400001442
 -- 013:0000000000000000000000000000000032421100422132102221231022212310
--- 014:0000000000000000000000000000000000000000000000000011100001222111
--- 015:0000000000000000000000000000000000000000000000001111000033111100
+-- 014:0000000000000000000000000000000000000000000000000001111101122122
+-- 015:0000000000000000000000000000000000000000000000001000001021111120
 -- 016:0001122300131233001331110001132200001111000012210000113100000111
 -- 017:3111211031412210144111003311000011110000122100001131000011110000
 -- 018:0001122300131233001331110001132200001111000012210000113100000111
@@ -794,8 +781,8 @@ fps=FPS:new()
 -- 027:2213311021111110214121101141221022111100111100001221000011110000
 -- 028:0000122200001222000112220001412200011411000011120000000100000000
 -- 029:2231311022131110211121102141221011411100222110003113100011111000
--- 030:0222422102222221022234210233344202344442023444220211111201000001
--- 031:2231221012232210412111101412231021121100221213102212211011111000
+-- 030:0131212200112112013221410111121401223221012213220011113300001111
+-- 031:2244432024444320244333201243222012222220122422201112221000011100
 -- 032:0000000000012222000013330000144401111444013322220133122200111223
 -- 033:0000000022221000324211004222121022212310222123102231311033313110
 -- 034:0000000000012222000013330000144401111444013322220133122200111223
