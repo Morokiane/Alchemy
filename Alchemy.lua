@@ -270,13 +270,10 @@ function TIC()
 	end
 	
 	if btnp(0) then
-		table.insert(quest,sNum)
-		sNum=sNum+1
-		flag=1
+		table.insert(quest,1)
 	end
 	if btnp(1) then
 		table.remove(quest,1)
-		sNum=sNum-1
 	end
 	
 	Update()
