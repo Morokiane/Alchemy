@@ -187,6 +187,10 @@ function HUD()
 	else
 		spr(453,4,68,0)
 	end
+ 
+ if(time()%500>250) and p.stab<=5 then
+ 	print('Warning!',18,18,1)
+	end
 	--Hearts
 	for num=1,p.maxLife do
 		spr(452,-4+8*num,4,0)

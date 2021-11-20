@@ -21,7 +21,8 @@ cam={
 	x=0,
 	y=0,
 	mapStart=0,
-	mapEnd=472 --Change this for wider levels. This is two map screens
+	mapEnd=472, --Change this for wider levels. This is two map screens
+	mapEndY=132
 }
 
 --[[Sprite table to hold sprite values so they can be called
@@ -171,7 +172,7 @@ function TIC()
 	cam.x=p.x-120
 	--[[Uncomment below if needing smooth scrolling on Y 
 	along with	the scrolling in all directions code]]
-	cam.y=p.y-88
+	cam.y=p.y-132
 	--[[This limits the movement of the camera to a bounds of 0 and 464
 	(two TIC-80 map screens) to expand change the variables. The -232 
 	should not have to be changes as it moves the camera back a full screen]]
@@ -183,6 +184,8 @@ function TIC()
 	
 	if cam.y<cam.mapStart then
 		cam.y=cam.mapStart
+	elseif cam.y>cam.mapEndY-112 then
+		cam.y=cam.mapEndY
 	end
 	
 	cls()
@@ -193,8 +196,10 @@ function TIC()
 	
 	--[[Uncomment below for scrolling in all directions]]
 	map(cam.x//8,cam.y//8,31,18,-(cam.x%8),-(cam.y%8),0,1,remap)
-	spr(258,p.x-cam.x,p.y-cam.y,0,1,1,0,2,2)
-
+	while p.damaged do --If the player is damaged blink the player
+		(time()%300>200)
+		spr(p.idx,p.x-cam.x,p.y-cam.y,0,1,p.flp,0,2,2)
+	end
 	--Scrolling only along X but loading full map grid on Y
 	--[[map(cam.x//8,(p.y//136)*17,31,18,-(cam.x%8),-(cam.y%8),0,1,remap)
 	if p.damaged then --If the player is damaged blink the player
@@ -332,7 +337,14 @@ function Player()
 		p.x=cam.mapEnd-8
 	end
 	
-	Pit()
+	Dead()
+	--Pit()
+end
+
+function Dead()
+	if p.curLife<=0 then
+		reset()
+	end
 end
 --Define the variables for the bads table
 function AddBad(t)
