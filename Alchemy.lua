@@ -15,7 +15,7 @@ max=math.max
 min=math.min
 del=table.remove
 
-dc=7
+dc=7 --debug txt color
 
 --Variables for the screen area
 w,h=240,136
@@ -57,7 +57,7 @@ p={
 	type="player",
 	curLife=2,
 	maxLife=3,
-	coins=0,
+	coins=41,
 	stab=51,
 	stabpot=3,
 	s={
@@ -77,7 +77,8 @@ p={
 	ducking=false,
 	damaged=false,
 	onQuest=false,
-	inTown=true
+	inTown=true,
+	inShop=false
 }
 
 e={
@@ -135,6 +136,10 @@ mapEnd=472 --Change this to what the end of the map will be (this will depend on
 mapEndY=136
 msgbox=false
 pt=0
+selX=75
+selY=54
+desctxt=""
+stabplus=false
 
 screenShake=false
 
@@ -155,6 +160,7 @@ end
 function OVR()
 	HUD()
 	Text()
+	ShopHUD()
 	Debug()
 	Mouse()
 end
@@ -203,12 +209,15 @@ function HUD()
 	--Stabilizer
 	spr(455,58,4,0)
 	print("x"..p.stabpot,66,6,1,true,1,false)
+	if stabplus then
+		spr(456,58,4,0)
+	end
 	--Shop
-	AddWin(w/2,h/2,64,32,7,"Whatcha buyin?\n\n  Stablizer\n  Heart")
+	--AddWin(w/2,h/2,64,32,7,"Whatcha buyin?\n\n  Stablizer\n  Heart")
 	--tri(x1 y1 x2 y2 x3 y3 color)
 
 	--tri(92,66,92,72,95,69,12)
-	tri(92,66+pt,92,72+pt,95,69+pt,12)
+	--tri(92,66+pt,92,72+pt,95,69+pt,12)
 end
 
 function Debug()
@@ -340,8 +349,40 @@ function Main()
  end]]
 end
 
-function Shop()
-	
+function ShopHUD()
+	if p.inShop then
+		rect(72,51,97,34,4)
+		rectb(73,52,95,32,1)
+		
+		rectb(selX,selY,43,12,1)
+		--Stabilizer
+		spr(455,77,56,0)
+		print("-",86,58,1)
+		spr(449,90,56,0)
+		print("x20",99,58,1)
+		--Heart
+		spr(244,125,56,0)
+		print("-",134,58,1)
+		spr(449,138,56,0)
+		print("x20",147,58,1)
+		--Stabilizer Plus
+		spr(455,77,72,0)
+		print("-",86,74,1)
+		spr(456,77,72,0)
+		spr(449,90,72,0)
+		print("x20",99,74,1)
+		if stabplus then
+			line(76,76,116,76,1)
+		end
+		--Don't lose stability
+		spr(453,125,72,0)
+		print("-",134,74,1)
+		spr(456,125,72,0)
+		spr(449,138,72,0)
+		print("x20",147,74,1)
+		--Description
+		AddWin(121,94,95,17,4,desctxt)
+	end
 end
 
 function Update()
@@ -375,7 +416,7 @@ end
 
 function Player()
 	--this enables a running
-	if p.canMove and not msgbox then
+	if p.canMove and not msgbox and not p.inShop then
 		if btn(c.r) and btn(c.a) then
 			p.vx=p.vmax+1
 			if p.grounded then
@@ -419,7 +460,7 @@ function Player()
 		end
 	end
 	--jump
-	if p.vy==0 and btnp(c.z) and p.canMove and not msgbox and not p.ducking then
+	if p.vy==0 and btnp(c.z) and p.canMove and not msgbox and not p.ducking and not p.inShop then
 		p.vy=-3.6
 		p.grounded=false
 		if not p.inTown then
@@ -429,7 +470,7 @@ function Player()
 		--psfx(o,1)
 	end
 	--duck
-	if btn(c.d) and p.vx==0 and not msgbox then
+	if btn(c.d) and p.vx==0 and not msgbox and not p.inShop then
 		p.idx=p.s.duck
 		p.ducking=true
 		p.canMove=false
@@ -570,9 +611,15 @@ function Stabilizer()
 		meterY=16
 		p.stabpot=p.stabpot-1
 	elseif btnp(c.x) and p.stab<31 and p.stabpot>0 then
-		p.stab=p.stab+15
-		meterY=meterY-15
-		p.stabpot=p.stabpot-1
+		if stabplus then
+			p.stab=p.stab+20
+			meterY=meterY-20
+			p.stabpot=p.stabpot-1
+		else
+			p.stab=p.stab+15
+			meterY=meterY-15
+			p.stabpot=p.stabpot-1
+		end
 	end
 end
 
@@ -689,6 +736,55 @@ function Town()
 	spr(192,78-cam.x,112-cam.y,0,1,0,0,1,2)
 	if (mget(p.x//8,p.y//8)==192 or mget(p.x//8+2,p.y//8)==192 or mget(p.x//8+1,p.y//8)==192) and btnp(c.a) then
 		print("got it",64,64,7)
+	end
+	--Shop	
+	if keyp(13) and not p.inShop then
+ 	p.inShop=true
+  p.canMove=false
+ elseif keyp(13) and p.inShop then
+ 	p.inShop=false
+  p.canMove=true
+ end
+ Shop()
+end
+
+function Shop()	
+	if p.inShop then
+		if btnp(c.r) then
+			selX=75+48
+		elseif btnp(c.d) then
+			selY=54+16
+		elseif btnp(c.l) then
+			selX=123-48
+		elseif btnp(c.u) then
+			selY=70-16
+		end
+		
+		if selX==75 and selY==54 then
+			desctxt="Adds Stabilizer"
+			if btnp(c.a) and p.coins>=20 and p.stabpot<4 then
+				p.stabpot=p.stabpot+1
+				p.coins=p.coins-20
+			end
+		elseif selX==123 and selY==54 then
+			desctxt="Fills one heart"
+			if btnp(c.a) and p.coins>=20 and p.curLife<3 then
+				p.curLife=p.curLife+1
+				p.coins=p.coins-20
+			end 
+		elseif selX==75 and selY==70 then
+			if not stabplus then
+				desctxt="Stabilizers are\nmore effective"
+			else
+					desctxt="Out of stock"
+			end
+			if btnp(c.a) and p.coins>=40 and not stabplus then
+				stabplus=true
+				p.coins=p.coins-40
+			end
+		elseif selX==123 and selY==70 then
+			desctxt="Stops stability loss\nfor a period of time"
+		end
 	end
 end
 
@@ -963,6 +1059,7 @@ fps=FPS:new()
 -- 006:0000000000000000000000000000000000077000007007000700007070000007
 -- 007:aaaaaaaaa008800aa080080aa000800aa008000aa080000aa088880aaaaaaaaa
 -- 008:aaaaaaaaa008800aa000080aa000800aa000080aa080080aa008800aaaaaaaaa
+-- 009:aaaaaaaaa008800aa008800aa080800aa088880aa000800aa000800aaaaaaaaa
 -- 016:0100000013100000133100001333100013333100133110000113100000000000
 -- 128:0000000000000000000dd00000dddd0000dddd00000dd0000000000000000000
 -- 160:0000000000000000000990000099990000999900000990000000000000000000
@@ -1094,6 +1191,7 @@ fps=FPS:new()
 -- 197:0000000001111110001441000012210001244210124444211222222101111110
 -- 198:0000000000000000000000000010010001214110124414211224412101111110
 -- 199:0000000001100110001331000013210000122100001211000011110000011000
+-- 200:0200000022200000020000000000000000000000000000200000022200000020
 -- 203:0000000000000000000000000000000000000000000000000000000000000011
 -- 204:0111111101212212001222220122222212333332124444430144444211344432
 -- 205:0000000010000000110000001210000021000000210000002210000011110000
@@ -1169,7 +1267,7 @@ fps=FPS:new()
 -- </SFX>
 
 -- <FLAGS>
--- 000:00102000000008408000000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
+-- 000:00102000000008408001000000000000004000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000
 -- 001:00000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000101000000000000000000000000000001010000000000000000000000000000010100000000000000000000000000000
 -- </FLAGS>
 
