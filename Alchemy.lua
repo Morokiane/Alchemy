@@ -57,7 +57,7 @@ p={
 	type="player",
 	curLife=2,
 	maxLife=3,
-	coins=00,
+	coins=0,
 	stab=51,
 	stabpot=3,
 	s={
@@ -134,6 +134,7 @@ mapStart=0
 mapEnd=472 --Change this to what the end of the map will be (this will depend on level)
 mapEndY=136
 msgbox=false
+pt=0
 
 screenShake=false
 
@@ -202,6 +203,12 @@ function HUD()
 	--Stabilizer
 	spr(455,58,4,0)
 	print("x"..p.stabpot,66,6,1,true,1,false)
+	--Shop
+	AddWin(w/2,h/2,64,32,7,"Whatcha buyin?\n\n  Stablizer\n  Heart")
+	--tri(x1 y1 x2 y2 x3 y3 color)
+
+	--tri(92,66,92,72,95,69,12)
+	tri(92,66+pt,92,72+pt,95,69+pt,12)
 end
 
 function Debug()
@@ -261,6 +268,12 @@ function TIC()
 		indicatorsOn=true
 	elseif keyp(9) and indicatorsOn==true then
 		indicatorsOn=false
+	end
+	
+	if btnp(c.d) then
+		pt=6
+	elseif btnp(c.u) then
+		pt=0
 	end
 --[[	
 	if btnp(0) then
@@ -612,7 +625,7 @@ function Collectiables()
 	flags set on the sprites, or by looking for the actual
 	sprite itself.]]
 	--rectb(p.x-1,p.y+1,8,8,7)
-	if mget(p.x//8+1,p.y//8+1)==s.coin or mget(p.x//8,p.y//8)==s.coin then
+	if (mget(p.x//8+1,p.y//8+1)==s.coin or mget(p.x//8,p.y//8)==s.coin) and p.coins<99 then
 		mset(p.x//8+1,p.y//8+1,0)
 		mset(p.x//8,p.y//8,0)
 		p.coins=p.coins+1
