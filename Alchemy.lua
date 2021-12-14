@@ -169,8 +169,8 @@ function Init()
 	p.cpY=p.y
 	ents={}
 	EntLocations()
-	--TIC=Update --Update is the main game loop that needs to run after the title screen
-	TIC=Title
+	TIC=Update --Update is the main game loop that needs to run after the title screen
+	--TIC=Title
 end
 
 function OVR()
@@ -511,7 +511,7 @@ end
 function Player()
 	--this enables a running
 	if p.canMove and not msgbox and not p.inShop then
-		if btn(c.r) and btn(c.a) then
+		if btn(c.r) and btn(c.x) then
 			p.vx=p.vmax+1
 			if p.grounded then
 				p.idx=p.s.run+t%80//10*2
@@ -522,7 +522,7 @@ function Player()
 				end
 			end
 			p.flp=1
-		elseif btn(c.l) and btn(c.a) then
+		elseif btn(c.l) and btn(c.x) then
 			p.vx=-p.vmax-1
 			if p.grounded then
 				p.idx=p.s.run+t%80//10*2
@@ -554,7 +554,7 @@ function Player()
 		end
 	end
 	--jump
-	if p.vy==0 and btnp(c.x) and p.canMove and not msgbox and not p.ducking and not p.inShop then
+	if p.vy==0 and btnp(c.a) and p.canMove and not msgbox and not p.ducking and not p.inShop then
 		p.vy=-3.6
 		p.grounded=false
 		if not p.inTown then
@@ -799,7 +799,7 @@ function Text()
 	if msgbox==true then
 		AddWin(hw,hh,128,65,3,txt)
 		--rect(179,95,7,7,4)
-		spr(482,178,95+math.sin(time()//90),0)
+		spr(483,178,95+math.sin(time()//90),0)
 		--print("A",180,97+math.sin(time()//90),1)
 	end
 end
@@ -835,7 +835,7 @@ function Town()
 		msgbox=true
 		p.onQuest=true
 		table.insert(quest,"On quest")
-	elseif fget(mget(p.x//8,p.y//8),2) and btnp(c.a) then
+	elseif fget(mget(p.x//8,p.y//8),2) and btnp(c.b) then
 		p.canMove=true
 		msgbox=false
 	end
@@ -938,7 +938,7 @@ function QuestOne()
 	if fget(mget(p.x//8,p.y//8),3) and btnp(c.a) and not msgbox then
 		txt="Thank you!\nThis will work nicely."
 		msgbox=true
-	elseif fget(mget(p.x//8,p.y//8),3) and btnp(c.a) then
+	elseif fget(mget(p.x//8,p.y//8),3) and btnp(c.b) then
 		msgbox=false
 		BackToTown()
 	end
@@ -966,7 +966,7 @@ function QuestTwo()
 	if fget(mget(p.x//8,p.y//8),3) and btnp(c.a) and not msgbox then
 		txt="Some platitude goes here"
 		msgbox=true
-	elseif fget(mget(p.x//8,p.y//8),3) and btnp(c.a) then
+	elseif fget(mget(p.x//8,p.y//8),3) and btnp(c.b) then
 		msgbox=false
 		BackToTown()
 	end
