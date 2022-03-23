@@ -36,7 +36,6 @@ s={
 	pit=3,
 	duck=290
 }
-
 --Collision detectors
 --[[These change where the collision detectors are for
 the top and sides of a sprite (Bottom can not be changed
@@ -52,7 +51,6 @@ coll={
 	cry1=7,--Defines where the right top mid collider is
 	cry2=8 --Defines where the right bottom mid collider is
 }
-
 --Player variables
 p={
 	idx=258, --Player sprite
@@ -106,7 +104,8 @@ spawns={
 grav=3.7 --gravity
 t=0 --timer for animation
 timer=0 --timer for blinking damage
-
+win={}
+maxCoins=0
 --Needed for xprint
 dirs={
 	{1,0},{-1,0},{0,1},{0,-1},{1,1},
@@ -122,9 +121,6 @@ screenShake={
 	duration=15,
 	power=3
 }
-
-win={}
-
 --Draw the HUD and Debug to the OVR
 function OVR()
 	if TIC==Update then
@@ -185,7 +181,6 @@ function HUD()
 	spr(240,22,2)
 	print(string.format("x%02d",p.coins),31,4,15,true,1,false)
 end
-
 --[[Init initiates the enemy table (bads) and adds those
 enemies to the map then loads the title as TIC. This type
 of init system needs to be set up to define what function
@@ -200,14 +195,15 @@ function Init()
 		TIC=Update
 	end
 end
-level=0
 
 function Title()
 	t=t+1
+	maxCoins=pmem(0)
 	cls()
 	map(0,68)
 	rect(0,26,256,48,10)
 	spr(128,7*8,4*8,8,1,0,0,16,4)
+	print("Most Coins Collects: "..maxCoins)
 	xprint("Press Z to start",120,96,{6,15},false,1,false,0,false,1)	
 	if btnp(c.z) then
 		TIC=Update
@@ -225,6 +221,14 @@ function GameOver()
 	end
 	if btnp(c.a) then
 		reset() --not the ideal way of handling but works.
+	end
+end
+
+function WinScreen()
+	cls()
+	AddWin(w/2,h/2-30,100,24,15,"All coins collected!\nPress A\nto return to title.")
+	if btnp(c.a) then
+		reset()
 	end
 end
 
@@ -281,6 +285,10 @@ function Main()
 		indicatorsOn=true
 	elseif keyp(09) and indicatorsOn==true then
 		indicatorsOn=false
+	end
+	
+	if p.coins==16 then
+		TIC=WinScreen
 	end
 	
 	t=t+1
@@ -525,6 +533,8 @@ function Collectiables()
 	 mset(p.x//8+1,p.y//8+1,0)
 		mset(p.x//8,p.y//8,0)
 		p.coins=p.coins+1
+		maxCoins=p.coins
+		pmem(0,maxCoins)
 	--sfx(01,'E-6',5)
 	end
 	if mget(p.x/8+1,p.y/8+1)==s.heart and p.curLife<2 then
