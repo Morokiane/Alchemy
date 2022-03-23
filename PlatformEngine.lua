@@ -10,6 +10,7 @@
 ]]
 --Simplify math operations. Floor will round a decimal.
 flr=math.floor
+rnd=math.random
 
 --Variables for the screen area
 w,h=240,136
@@ -122,6 +123,8 @@ screenShake={
 	power=3
 }
 
+win={}
+
 --Draw the HUD and Debug to the OVR
 function OVR()
 	if TIC==Update then
@@ -210,6 +213,20 @@ function Title()
 		TIC=Update
 	end
 end
+--[[Game Over function that sets certain parameters for when
+the player dies]]
+function GameOver()
+	AddWin(w/2,h/2-30,64,24,15,"You Died!\nPress A to\nreturn to title.")
+	--Remove the enemies
+	p.idx=294
+	p.canMove=false
+	for k in pairs(bads) do
+		bads[k]=nil
+	end
+	if btnp(c.a) then
+		reset() --not the ideal way of handling but works.
+	end
+end
 
 function Main()
 	--[[Initial placement of the camera. This places the
@@ -242,7 +259,6 @@ function Main()
 	--[[Scrolling in X and full screen load in Y]]
 	map(cam.x//8,cam.y//8,31,18,-(cam.x%8),-(cam.y%8),0,1,remap)
 	if p.damaged then --If the player is damaged blink the player
-		screenShake.active=true
 		if (time()%300>200) then
 			spr(p.idx,p.x-cam.x,p.y-cam.y,0,1,p.flp,0,2,2)
 		end
@@ -416,7 +432,7 @@ end
 reset. A game over screen will be added in the next update]]
 function Dead()
 	if p.curLife<=0 then
-		reset()
+		GameOver()
 	end
 end
 --Define the variables for the bads table
@@ -479,7 +495,7 @@ function Enemy()
 		if v.x//8+1==p.x//8+1 and v.y//8==p.y//8 and p.curLife>0 and not p.damaged then
 			p.curLife=p.curLife-1
 			p.damaged=true
-			--screenShake.active=true
+			screenShake.active=true
 		end
 	end
 end
@@ -626,6 +642,21 @@ function ShakeScreen()
   screenShake.duration=screenShake.defaultDuration
 	end
 end
+--Add
+function AddWin(x,y,w,h,col,txt)
+	for i=1,#win do
+		table.insert(win,i,#win)
+	end
+	rect(x-w/2,y-h/2,w,h,col)
+	rectb(x-w/2+1,y-h/2+1,w-2,h-2,0) --no idea but it works
+ print(txt,x-w/2+3,y-h/2+3,0,0,1,true)
+end
+
+function DrawWin()
+	for w in pairs(win) do
+		rect(w.x,w.y,w.w,w.h,0)
+	end
+end
 --Calculate frames per second
 FPS={}
 
@@ -749,14 +780,18 @@ fps=FPS:new()
 -- 021:ffff2222ffffff22ffffff22ffffff22ffffff22ffffff222222222222222222
 -- 022:ff000000ff000000ff000000ff00f000ff00ffffff000000ffffffffffffffff
 -- 023:000000ff000000ff000000ff000f00ffffff00ff000000ffffffffffffffffff
--- 034:00000000000000000000000000000000222222222222222222ffffff22ffffff
--- 035:000000000000000000000000000000002222222222222222ffffff22ffffff22
--- 036:00000000000000000000000000000000222222222222222222ffffff22ffffff
--- 037:000000000000000000000000000000002222222222222222ffffff22ffffff22
+-- 034:0000000000000000000000000000000000000000222222222222222222ffffff
+-- 035:00000000000000000000000000000000000000002222222222222222ffffff22
+-- 036:0000000000000000000000000000000000000000222222222222222222ffffff
+-- 037:00000000000000000000000000000000000000002222222222222222ffffff22
+-- 038:0000000000000000000000000000000000000000000000002222222222222222
+-- 039:0000000000000000000000000000000000000000000000002222222222222222
 -- 050:22ff22ff22ff22ff22ff22ff22ff22ff22ff22ff22ffffff2222222222222222
 -- 051:ff22ff22ff22ff22ff22ff22ff22ff22ff22ff22ffffff222222222222222222
 -- 052:22ffff2222ffff2222ffff2222ffff2222ffff2222ffffff2222222222222222
 -- 053:ffff2222ffff2222ffff2222ffff2222ffff2222ffffff222222222222222222
+-- 054:22ffffff22ffffff22ff2f2f22fff2ff22ff2f2f22ffffff2222222222222222
+-- 055:ffffff22ffffff22f2f2ff22ff2fff22f2f2ff22ffffff222222222222222222
 -- </SPRITES>
 
 -- <MAP>
