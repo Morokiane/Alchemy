@@ -400,7 +400,7 @@ function Title()
 	ti=ti+1
 	sync(0,7,false)
 	cls(12)
-	print(pt,1,9,2)--Cursor position
+	--print(pt,1,9,2)--Cursor position
 	if timer<=100 then
 		map()
 		timer=timer+1
@@ -462,8 +462,17 @@ function Menu()
 end
 
 function Options()
+	pto=0
 	cls(12)
 	print("this is the options screen")
+	--tri(92,55+pto,92,61+pto,95,58+pto,2)
+	--rect(32,32,5,3,2)
+	circ(32,5,3,2)
+	--AddWin(w/2,h/2,64,29,12,"  Control Prompt\n  SXF Volume\n  Music Volume\n  Back")
+	print("Control Prompts:",12,32,2)
+	print("Sound Volume:",12,44,2)
+	print("Music Volume:",12,56,2)
+
 	--AddWin(w/2,h/2,64,24,7,"Nothing here.\nCheck back\nlater.")
 	if btnp(c.a) then
 		TIC=Menu
