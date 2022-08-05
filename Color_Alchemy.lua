@@ -458,6 +458,8 @@ function Menu()
 end
 
 pto=0
+sslide=110
+mslide=110
 function Options()
 	cls(12)
 	--spr(256,w/2-64,h/2-64,11,1,0,0,16,16)
@@ -485,24 +487,25 @@ function Options()
 	end
 	--Sound volume slider
 	line(106,44,106,48,15)
-	line(106,46,206,46,15)
-	line(206,44,206,48,15)
-	circ(110,46,3,2)
+	line(106,46,212,46,15)
+	line(212,44,212,48,15)
+	circ(sslide,46,3,2)
 	--Music volume slider
 	line(106,56,106,60,15)
-	line(106,58,206,58,15)
-	line(206,56,206,60,15)
-	circ(110,58,3,2)
+	line(106,58,212,58,15)
+	line(212,56,212,60,15)
+	circ(mslide,58,3,2)
 	--Labels	
 	print("Control Prompts:",12,32,0)
 	print("Sound Volume:",12,44,0)
 	print("Music Volume:",12,56,0)
-	print("Exit",12,68,0)
+	print("Erase Save Data:",12,68,0)
+	print("Exit",12,80,0)
 	--Move selector
-	if btnp(c.d) and pto~=36 then
+	if btnp(c.d) and pto~=48 then
 		pto=pto+12
-	elseif pto==36 then
-		pto=36
+	elseif pto==48 then
+		pto=48
 	end
 	
 	if btnp(c.u) and pto~=0 then
@@ -517,7 +520,29 @@ function Options()
 		keyb=1
 	end
 
+	if btnp(c.r) and sslide<=201 and pto==12 then
+		sslide=sslide+7
+	elseif btnp(c.l) and sslide>=117 and pto==12 then
+		sslide=sslide-7
+	end
+
+	if btnp(c.r) and mslide<=201 and pto==24 then
+		mslide=mslide+7
+	elseif btnp(c.l) and mslide>=117 and pto==24 then
+		mslide=mslide-7
+	end
+	
+	if pmem(0)~=0 then
+		print("Save data found",107,68,6)
+	else
+		print("No save data",107,68,2)
+	end
+	
 	if btnp(c.a) and pto==36 then
+		pmem(0,0)
+	end
+
+	if btnp(c.a) and pto==48 then
 		pmem(10,keyb)
 		TIC=Menu
 	end
