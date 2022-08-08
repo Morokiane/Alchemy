@@ -5,7 +5,7 @@
 -- input:  gamepad
 -- saveid: beta
 
-ver="v 0.6c"
+ver="v 0.7c"
 releaseBuild=true
 --Simplify math operations. Floor will round a decimal down
 flr=math.floor
@@ -403,8 +403,10 @@ function Title()
 		spr(256,w/2-64,h/2-64,11,1,0,0,16,16)
 		if not menu then
 		--xprint(txt,x,y,col,fixed,scale,smallfont,align,thin,blink)
-			xprint("Press "..ctrla(sprt).." to Start",75,126,{0,4},false,1,false,2,false,1)
-			--spr(ctrla(),75,126)
+			xprint("Press ".."Z".." to Start",75,126,{0,4},false,1,false,2,false,1)
+			--[[if (time()%600>300) then
+				spr(242,109,125,0)
+			end]]
 		end
 		
 		if btnp(c.a) and not menu then
@@ -417,10 +419,13 @@ function Menu()
 	cls(12)
 	spr(256,w/2-64,h/2-64,11,1,0,0,16,16)
 	keyb=pmem(10)
+	
+	AddWin(w/2,h/2,64,29,12,"  New Game\n\n  Options\n  Exit")
 	if pmem(0)~=0 then
-		print("Save data found",1,1,2)
+		print("Load Game",99,62,0,true,1,true)
+	else
+		print("Load Game",99,62,13,true,1,true)
 	end
-	AddWin(w/2,h/2,64,29,12,"  New Game\n  Load Game\n  Options\n  Exit")
 	tri(92,55+pt,92,61+pt,95,58+pt,2)
 	--Controls how far the cursor travels
 	if btnp(c.d) and pt~=18 then
@@ -547,28 +552,6 @@ function Options()
 		TIC=Menu
 	end
 end
-
---function TIC()
-	
---[[	
-	if btnp(0) then
-		table.insert(quest,1)
-	end
-	if btnp(1) then
-		table.remove(quest,1)
-	end]]
-	--Update()
-
---[[
-	if(time()%500>250) then
-  print('Warning!',h/2,w/2)
- end
-	
-	if(time()>2000)then
-  print('Fugit inreparabile tempus',32,60)
- end]]
-	--t=time()//20
---end
 
 function Main()
 	--NOTE!!!--
