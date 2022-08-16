@@ -25,7 +25,10 @@ hw,hh=w/2,h/2
 
 win={}
 txt=""
-slotUn=1
+--slotUn=0
+--slotDeux=0
+slot1Used=0
+slot2Used=0
 
 indicatorsOn=false
 --Setup camera coordinates
@@ -372,6 +375,7 @@ function Debug()
 		print("Coins: "..pmem(6),36,104,dc,false,1,true)
 		print("Stab+: "..pmem(7),36,112,dc,false,1,true)
 		print("Pack: "..pmem(8),36,120,dc,false,1,true)
+		print("Slot: "..pmem(10),36,128,dc,false,1,true)
 		--Collision indicators
 		pix(p.x+coll.tlx+p.vx-cam.x,p.y%136+coll.tly+p.vy,6) --top left
 		pix(p.x+coll.trx+p.vx-cam.x,p.y%136+coll.tly+p.vy,6) --top right
@@ -468,6 +472,8 @@ end
 
 selMov=37
 function NewGame()
+	slot1Used=pmem(10)
+	slot2Used=pmem(21)
 	cls(12)
 	spr(256,w/2-64,h/2-64,11,1,0,0,16,16)
 	--bg of menu
@@ -481,34 +487,35 @@ function NewGame()
 	print("Slot 1",104,34,0)
 	print("Slot 2",104,68,0)
 	--Hide all the graphics if a save doesn't exist.
-	--Slot 1
-	--coin
-	spr(228,95,39,5)
-	print(string.format("x%02d",pmem(6)),104,42,0,true,1,false)
-	--stableizer
-	spr(244,95,48,5)
-	print(string.format("x%02d",pmem(6)),104,51,0,true,1,false)
-	if pmem(7)==1 then
-		spr(245,95,48,5)
+	if slot1Used==1 then
+		--Slot 1
+		--coin
+		spr(228,95,39,5)
+		print(string.format("x%02d",pmem(6)),104,42,0,true,1,false)
+		--stableizer
+		spr(244,95,48,5)
+		print(string.format("x%02d",pmem(1)),104,51,0,true,1,false)
+		if pmem(7)==1 then
+			spr(245,95,48,5)
+		end
+		--hearts
+		print(pmem(0))
+		for num=1,p.maxLife do
+			spr(246,115+8*num,39,5)
+		end
+		
+		for num=1,pmem(0) do
+			spr(230,115+8*num,39,5)
+		end
+		--lvl
+		print("Level: "..pmem(5),95,58,0,true,1,true)
+		--backpack pmem8
+		if pmem(8)==1 then
+			spr(229,123,48,5)
+		end
+		--chr
+		spr(231,131,47,5,1,0,0,2,2)
 	end
-	--hearts
-	print(pmem(0))
-	for num=1,p.maxLife do
-		spr(246,115+8*num,39,5)
-	end
-	
-	for num=1,pmem(0) do
-		spr(230,115+8*num,39,5)
-	end
-	--lvl
-	print("Level: "..pmem(5),95,58,0,true,1,true)
-	--backpack pmem8
-	if pmem(8)==1 then
-		spr(229,123,48,5)
-	end
-	--chr
-	spr(231,131,47,5,1,0,0,2,2)
-	
 	--selector move
 	if btnp(c.d) and selMov==37 then
 		selMov=71
@@ -519,9 +526,15 @@ function NewGame()
 	and if a save exists give a warning it'll be 
 	overwritten]]
 	if btnp(c.a) and selMov==37 then
+		--slotUn=1
+		slot1Used=1
+		pmem(10,slot1Used)
 		TIC=Update
 	elseif btnp(c.a) and selMov==71 then
+		--slotDeux=1
 		TIC=Update
+	elseif btnp(c.x) then
+		TIC=Menu
 	end
 
 end
@@ -691,10 +704,6 @@ function Update()
 	draw_psystems()
 	
 	ti=ti+1
-	
-	if slotUn==0 then
-		slotUn=1
-	end
 	
 	if keyp(46) then
 		table.insert(quest,1)
@@ -1306,29 +1315,57 @@ function Save()
 	local savY=flr(p.y)
 	--pmem(saveScoreIdx,bestScore)
  --bestScore=pmem(saveScoreIdx)
-	pmem(0,p.curLife)
-	pmem(1,savStab)
-	pmem(2,savX)
-	pmem(3,savY)	
-	pmem(4,savMeter)
-	pmem(5,#quest)
-	pmem(6,p.coins)
-	pmem(7,stabplus)
-	pmem(8,backpack)
-	pmem(9,p.onQuest)
+	if slot1Used==1 then
+		pmem(0,p.curLife)
+		pmem(1,p.stabPot)
+		--pmem(1,savStab) not sure if this actually used or not
+		pmem(2,savX)
+		pmem(3,savY)	
+		pmem(4,savMeter)
+		pmem(5,#quest)
+		pmem(6,p.coins)
+		pmem(7,stabplus)
+		pmem(8,backpack)
+		pmem(9,p.onQuest)
+	elseif slot2Used==1 then
+		pmem(11,p.curLife)
+		pmem(12,savStab)
+		pmem(13,savX)
+		pmem(14,savY)	
+		pmem(15,savMeter)
+		pmem(16,#quest)
+		pmem(17,p.coins)
+		pmem(18,stabplus)
+		pmem(19,backpack)
+		pmem(20,p.onQuest)
+	end
 end
 
 function Load()
-	p.curLife=pmem(0)
-	p.stab=pmem(1)
-	p.x=pmem(2)
-	p.y=pmem(3)
-	meterY=pmem(4)
-	qnum=pmem(5)
-	p.coins=pmem(6)
-	stabplus=pmem(7)
-	backpack=pmem(8)
-	p.onQuest=pmem(9)
+	if slot1Used==1 then
+		p.curLife=pmem(0)
+		p.stabPot=pmem(1)
+		--p.stab=pmem(1)
+		p.x=pmem(2)
+		p.y=pmem(3)
+		meterY=pmem(4)
+		qnum=pmem(5)
+		p.coins=pmem(6)
+		stabplus=pmem(7)
+		backpack=pmem(8)
+		p.onQuest=pmem(9)
+	elseif slot2Used==1 then
+		p.curLife=pmem(11)
+		p.stab=pmem(12)
+		p.x=pmem(13)
+		p.y=pmem(14)
+		meterY=pmem(15)
+		qnum=pmem(16)
+		p.coins=pmem(17)
+		stabplus=pmem(18)
+		backpack=pmem(19)
+		p.onQuest=pmem(20)
+	end
 end
 
 function AddEnt(t)
