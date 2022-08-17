@@ -159,7 +159,6 @@ selY=54
 desctxt=""
 stabplus=0
 backpack=0
-loadGame=false --this is probably going away with new system
 sky=14
 keyb=1
 cloud=0
@@ -422,13 +421,14 @@ function Title()
 end
 
 function Menu()
+	selMov=37
 	cls(12)
 	--print(slotUn.." "..pmem(10))
 	spr(256,w/2-64,h/2-64,11,1,0,0,16,16)
 	keyb=pmem(30)
 	
 	AddWin(w/2,h/2,64,29,12,"  New Game\n\n  Options\n  Exit")
-	if pmem(10)==0 then
+	if pmem(10)==1 or pmem(21)==1 then
 		print("Load Game",99,62,0,true,1,true)
 	else
 		print("Load Game",99,62,13,true,1,true)
@@ -448,16 +448,16 @@ function Menu()
 	end
 	
 	if btnp(c.a) and pt==0 then
-		loadGame=true
+		--loadGame=true
 		TIC=NewGame
 		--TIC=Update
 	elseif btnp(c.a) and pt==6 then
-		if pmem(10)==0 then
+		if pmem(10)==0 or pmem(21)==0then
 			return
 		else
-			loadGame=true
-			Load()
-			TIC=Update
+			--loadGame=true
+			--Load()
+			TIC=LoadGame
 		end
 	elseif btnp(c.a) and pt==12 then
 		TIC=Options
@@ -486,6 +486,11 @@ function NewGame()
 	
 	print("Slot 1",104,34,0)
 	print("Slot 2",104,68,0)
+	--Warning
+	if pmem(10)==1 or pmem(21)==1 then
+		spr(233,75,119,5,1,0,0,2,2)
+		print("Selecting an existing\nsave will OVERWRITE!",93,121,2,false,1,true)
+	end
 	--Hide all the graphics if a save doesn't exist.
 	if slot1Used==1 then
 		--Slot 1
@@ -499,7 +504,6 @@ function NewGame()
 			spr(245,95,48,5)
 		end
 		--hearts
-		print(pmem(0))
 		for num=1,p.maxLife do
 			spr(246,115+8*num,39,5)
 		end
@@ -516,6 +520,35 @@ function NewGame()
 		--chr
 		spr(231,131,47,5,1,0,0,2,2)
 	end
+	--Slot 2 graphics
+	if slot2Used==1 then
+		--Slot 2
+		--coin
+		spr(228,95,39+34,5) --73
+		print(string.format("x%02d",pmem(17)),104,42+34,0,true,1,false)
+		--stableizer
+		spr(244,95,48+34,5)
+		print(string.format("x%02d",pmem(12)),104,51+34,0,true,1,false)
+		if pmem(7)==1 then
+			spr(245,95,48+34,5)
+		end
+		--hearts
+		for num=1,p.maxLife do
+			spr(246,115+8*num,39+34,5)
+		end
+		
+		for num=1,pmem(11) do
+			spr(230,115+8*num,39+34,5)
+		end
+		--lvl
+		print("Level: "..pmem(16),95,58+34,0,true,1,true)
+		--backpack
+		if pmem(19)==1 then
+			spr(229,123,48+34,5)
+		end
+		--chr
+		spr(231,131,47+34,5,1,0,0,2,2)
+	end
 	--selector move
 	if btnp(c.d) and selMov==37 then
 		selMov=71
@@ -526,17 +559,113 @@ function NewGame()
 	and if a save exists give a warning it'll be 
 	overwritten]]
 	if btnp(c.a) and selMov==37 then
-		--slotUn=1
 		slot1Used=1
 		pmem(10,slot1Used)
+		sync(0,0,false)
 		TIC=Update
 	elseif btnp(c.a) and selMov==71 then
-		--slotDeux=1
+		slot2Used=1
+		pmem(21,slot2Used)
+		sync(0,0,false)
 		TIC=Update
-	elseif btnp(c.x) then
+	elseif btnp(c.b) then
 		TIC=Menu
 	end
+end
 
+function LoadGame()
+	slot1Used=pmem(10)
+	slot2Used=pmem(21)
+	cls(12)
+	spr(256,w/2-64,h/2-64,11,1,0,0,16,16)
+	--bg of menu
+	rect(87,31,67,74,12)
+	rectb(88,32,65,72,0)
+	--selector
+	rectb(93,selMov,55,28,0)
+	rect(93,selMov+4,55,20,12)
+	rect(97,selMov,47,28,12)
+	
+	print("Slot 1",104,34,0)
+	print("Slot 2",104,68,0)
+	--Hide all the graphics if a save doesn't exist.
+	if slot1Used==1 then
+		--Slot 1
+		--coin
+		spr(228,95,39,5)
+		print(string.format("x%02d",pmem(6)),104,42,0,true,1,false)
+		--stableizer
+		spr(244,95,48,5)
+		print(string.format("x%02d",pmem(1)),104,51,0,true,1,false)
+		if pmem(7)==1 then
+			spr(245,95,48,5)
+		end
+		--hearts
+		for num=1,p.maxLife do
+			spr(246,115+8*num,39,5)
+		end
+		
+		for num=1,pmem(0) do
+			spr(230,115+8*num,39,5)
+		end
+		--lvl
+		print("Level: "..pmem(5),95,58,0,true,1,true)
+		--backpack pmem8
+		if pmem(8)==1 then
+			spr(229,123,48,5)
+		end
+		--chr
+		spr(231,131,47,5,1,0,0,2,2)
+	end
+	--Slot 2 graphics
+	if slot2Used==1 then
+		--Slot 2
+		--coin
+		spr(228,95,39+34,5) --73
+		print(string.format("x%02d",pmem(17)),104,42+34,0,true,1,false)
+		--stableizer
+		spr(244,95,48+34,5)
+		print(string.format("x%02d",pmem(12)),104,51+34,0,true,1,false)
+		if pmem(7)==1 then
+			spr(245,95,48+34,5)
+		end
+		--hearts
+		for num=1,p.maxLife do
+			spr(246,115+8*num,39+34,5)
+		end
+		
+		for num=1,pmem(11) do
+			spr(230,115+8*num,39+34,5)
+		end
+		--lvl
+		print("Level: "..pmem(16),95,58+34,0,true,1,true)
+		--backpack
+		if pmem(19)==1 then
+			spr(229,123,48+34,5)
+		end
+		--chr
+		spr(231,131,47+34,5,1,0,0,2,2)
+	end
+	--selector move
+	if btnp(c.d) and selMov==37 then
+		selMov=71
+	elseif btnp(c.u) and selMov==71 then
+		selMov=37
+	end
+
+	if btnp(c.a) and selMov==37 then
+		slot2Used=0
+		sync(0,0,false)
+		Load()
+		TIC=Update
+	elseif btnp(c.a) and selMov==71 then
+		slot1Used=0
+		sync(0,0,false)
+		Load()
+		TIC=Update
+	elseif btnp(c.b) then
+		TIC=Menu
+	end
 end
 
 pto=0
@@ -614,7 +743,7 @@ function Options()
 		mslide=mslide-7
 	end
 	
-	if pmem(10)==1 then
+	if pmem(10)==1 or pmem(21)==1 then
 		print("Save data found",107,68,6)
 	else
 		print("No save data",107,68,2)
@@ -622,6 +751,7 @@ function Options()
 	
 	if btnp(c.a) and pto==36 then
 		pmem(10,0)
+		pmem(21,0)
 	end
 
 	if btnp(c.a) and pto==48 then
@@ -675,10 +805,6 @@ function Main()
 end
 
 function Update()
-	if loadGame then
-		sync(0,0,false)
-		loadGame=false
-	end
 	update_psystems()
 	cls(sky)
 	if keyp(9) and indicatorsOn==false then
@@ -1130,13 +1256,26 @@ function Shop()
 			if btnp(c.x) and p.coins>=10 and p.stabPot<p.stabPotMax then
 				p.stabPot=p.stabPot+1
 				p.coins=p.coins-10
-				--pmem(7,stabplus)
+				if pmem(10)==1 then
+					pmem(1,p.stabPot)
+					pmem(6,p.coins)
+				elseif pmem(21)==1 then
+					pmem(12,p.stabPot)
+					pmem(17,p.coins)
+				end
 			end
 		elseif selX==123 and selY==54 then
 			desctxt="Fills one heart"
 			if btnp(c.x) and p.coins>=50 and p.curLife<3 then
 				p.curLife=p.curLife+1
 				p.coins=p.coins-20
+				if pmem(10)==1 then
+					pmem(0,p.curLife)
+					pmem(6,p.coins)
+				elseif pmem(21)==1 then
+					pmem(11,p.curLife)
+					pmem(17,p.coins)
+				end
 			end 
 		elseif selX==75 and selY==70 then
 			if stabplus==0 then
@@ -1147,6 +1286,13 @@ function Shop()
 			if btnp(c.x) and p.coins>=40 and stabplus==0 then
 				stabplus=1
 				p.coins=p.coins-40
+				if pmem(10)==1 then
+					pmem(7,stabplus)
+					pmem(6,p.coins)
+				elseif pmem(21)==1 then
+					pmem(18,stabplus)
+					pmem(17,p.coins)
+				end
 			end
 		elseif selX==123 and selY==70 then
 			if backpack==0 then
@@ -1157,7 +1303,14 @@ function Shop()
 			if btnp(c.x) and p.coins>=99 and backpack==0 then
 				p.stabPotMax=6
 				backpack=1
-				p.coins=p.coins-1
+				p.coins=p.coins-99
+				if pmem(10)==1 then
+					pmem(8,backpack)
+					pmem(6,p.coins)
+				elseif pmem(21)==1 then
+					pmem(19,backpack)
+					pmem(17,p.coins)
+				end
 			end
 		end
 	end
@@ -1329,7 +1482,7 @@ function Save()
 		pmem(9,p.onQuest)
 	elseif slot2Used==1 then
 		pmem(11,p.curLife)
-		pmem(12,savStab)
+		pmem(12,p.stabPot)
 		pmem(13,savX)
 		pmem(14,savY)	
 		pmem(15,savMeter)
@@ -1356,7 +1509,7 @@ function Load()
 		p.onQuest=pmem(9)
 	elseif slot2Used==1 then
 		p.curLife=pmem(11)
-		p.stab=pmem(12)
+		p.stabPot=pmem(12)
 		p.x=pmem(13)
 		p.y=pmem(14)
 		meterY=pmem(15)
@@ -3511,7 +3664,7 @@ fps=FPS:new()
 -- 185:4444444e333e000000000008000008aa000aaaaa088888800000000000000000
 -- 186:000a8008aaa0808aa80080aa800800aa000a00aa008800880000000000000000
 -- 187:0000d4440004444400e444440044444403444444033333330000000000000000
--- 188:dee0000044444000444440004444400044444000333338000000000000000000
+-- 188:dee0000044444000444440004444400044444000333330000000000000000000
 -- 189:0c0000000c0000000c0000000c0000000c0000000c0000000c0000000c000000
 -- 192:c0000000c0000000c0000000c0000000c0000000c0000000c0000000c0000000
 -- 194:0000cccc0000cccc0000eccc000000ec0000000000000000000ece00000ecc00
@@ -3547,6 +3700,8 @@ fps=FPS:new()
 -- 230:5555555550050055022022050232320502333205502320555502055555505555
 -- 231:5555555555502222555503335555044455500444555022225555022255550222
 -- 232:5555555522220555323200554222ce152220dc152220dc1522e0c115220e1115
+-- 233:5555555555555550555555045555550455555044555550405555044055550440
+-- 234:55555555055555554055555540e55555440e5555040e55550440e5550440e555
 -- 240:0aaaaaa0aacaacaaaacaacaaaaaccaaaaacaacaaaacaacaa8aaaaaa808888880
 -- 241:0333333033c33c3333c33c33333ccc3333333c33333cc3338333333808888880
 -- 242:0ffffff0fcccccdffddccddffdccdddffccddddffcccccdffeeeeeefffffffff
@@ -3556,6 +3711,8 @@ fps=FPS:new()
 -- 246:55555555500500550cc0cc050ccccc050ccccc0550ccc055550c055555505555
 -- 247:5550022a550402aa5504400055500edd5555000055550ee05555002055555000
 -- 248:a000e115a040ee1504400055ee005555000055550ee055550020555500005555
+-- 249:55504440555044445504444055044440504444445000000055eeeeee55555555
+-- 250:04440e5544440e55044440e5044440e54444440e0000000eeeeeeeee55555555
 -- </TILES7>
 
 -- <SPRITES>
