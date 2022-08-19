@@ -162,6 +162,9 @@ backpack=0
 sky=14
 keyb=1
 cloud=0
+selMov=37
+save=200
+saving=false
 
 screenShake=false
 
@@ -292,6 +295,10 @@ function HUD()
 	print("x"..p.stabPot,66,6,0,true,1,false)
 	if stabplus==1 then
 		spr(456,58,4,7)
+	end
+	
+	if saving then
+		spr(467+ti%40//10,230,1,6)
 	end
 end
 
@@ -470,7 +477,6 @@ function Menu()
 	end
 end
 
-selMov=37
 function NewGame()
 	slot1Used=pmem(10)
 	slot2Used=pmem(21)
@@ -831,6 +837,14 @@ function Update()
 	
 	ti=ti+1
 	
+	if saving then
+		save=save-2
+	end
+	if save<0 then
+		saving=false
+		save=200
+	end
+
 	if keyp(46) then
 		table.insert(quest,1)
 		p.onQuest=1
@@ -1225,6 +1239,7 @@ function Town()
 	elseif fget(mget(p.x//8,p.y//8),4) and btnp(c.b) and p.inShop then
 		p.canMove=true
 		p.inShop=false
+		saving=true
 	end
 	if p.inShop then
 		Shop()
@@ -1307,9 +1322,11 @@ function Shop()
 				if pmem(10)==1 then
 					pmem(8,backpack)
 					pmem(6,p.coins)
+					pmem(10,p.stabPotMax)
 				elseif pmem(21)==1 then
 					pmem(19,backpack)
 					pmem(17,p.coins)
+					pmem(21,p.stabPotMax)
 				end
 			end
 		end
@@ -1466,6 +1483,9 @@ function Save()
 	local savMeter=ceil(meterY)-1
 	local savX=flr(p.x)
 	local savY=flr(p.y)
+	
+	saving=true
+
 	--pmem(saveScoreIdx,bestScore)
  --bestScore=pmem(saveScoreIdx)
 	if slot1Used==1 then
@@ -1480,6 +1500,7 @@ function Save()
 		pmem(7,stabplus)
 		pmem(8,backpack)
 		pmem(9,p.onQuest)
+		pmem(10,p.stabPotMax)
 	elseif slot2Used==1 then
 		pmem(11,p.curLife)
 		pmem(12,p.stabPot)
@@ -1491,6 +1512,7 @@ function Save()
 		pmem(18,stabplus)
 		pmem(19,backpack)
 		pmem(20,p.onQuest)
+		pmem(21,p.stabPotMax)
 	end
 end
 
@@ -3835,6 +3857,10 @@ fps=FPS:new()
 -- 208:000000000000000000000000000000cc00000c110000c111006c1114056c1133
 -- 209:000000000000000000000000c0c000001c1c0000c111c00044411c0033311c00
 -- 210:77333377731cc13773c56c3773c65c3773c56c3773c65c3733c56c3373c33c37
+-- 211:ccccccccce2322ecce2332ecce2222ecceeeeeecce555eecce5115ecccccccc0
+-- 212:66cccc6666c23c6666c23c6666c22c6666ceec6666c55c6666c11c6666ccc666
+-- 213:6666c6666666c6666666c6666666c6666666c6666666c6666666c6666666c666
+-- 214:66cccc6666c32c6666c32c6666c22c6666ceec6666c55c6666c11c66666ccc66
 -- 217:0000000000000000000000000000000000000c000000cacc00ccccec0cacceee
 -- 218:000000000000000000000000000000000000c000c00cac00cccacac0caccac00
 -- 219:000ccc3300c333330c333333c3333333c3333344c2222444c8888444c78887cc
