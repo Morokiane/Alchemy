@@ -5,7 +5,6 @@
 -- input:  gamepad
 -- saveid: beta
 
---load game is broken
 ver="v 0.8c"
 releaseBuild=true
 --Simplify math operations. Floor will round a decimal down
@@ -19,7 +18,7 @@ max=math.max
 min=math.min
 del=table.remove
 
-dc=3 --debug txt color
+dc=11 --debug txt color
 --Variables for the screen area
 w,h=240,136
 hw,hh=w/2,h/2
@@ -166,6 +165,7 @@ cloud=0
 selMov=37
 save=200
 saving=false
+reload=false
 
 screenShake=false
 
@@ -429,7 +429,7 @@ function Title()
 end
 
 function Menu()
-	selMov=37
+	selMov=37 --reset load/new game menu cursor
 	cls(12)
 	print(pmem(10))
 	print(pmem(21),0,8)
@@ -677,7 +677,34 @@ end
 
 function GameOver()
 	sync(0,6,false)
+	sky=15
+	sfx(63)
 	map()
+	AddWin(w/2,86,64,23,2,"  Reload Save\n  Back to Menu\n  Exit Game")
+	tri(92,76+pt,95,79+pt,92,82+pt,3)
+	print(slot1Used)
+	--Controls how far the cursor travels
+	if btnp(c.d) and pt~=12 then
+		pt=pt+6
+	elseif pt==12 then
+		pt=12
+	end
+	
+	if btnp(c.u) and pt~=0 then
+		pt=pt-6
+	elseif pt==0 then
+		pt=0
+	end
+	--weird sfx crap when game is reloaded from this
+	--load doesn't work
+	if btnp(c.a) and pt==0 then
+		reload=true
+		TIC=Update
+	elseif btnp(c.a) and pt==6 then
+		reset() --plays sfx when starting new or loading
+	elseif btnp(c.a) and pt==12 then
+		exit()
+	end
 end
 
 pto=0
@@ -817,6 +844,10 @@ function Main()
 end
 
 function Update()
+	if reload then
+		Reload()
+		reload=false
+	end
 	update_psystems()
 	cls(sky)
 	if keyp(9) and indicatorsOn==false then
@@ -824,11 +855,11 @@ function Update()
 	elseif keyp(9) and indicatorsOn==true then
 		indicatorsOn=false
 	end
-	if keyp(28) then
+	if keyp(28) then --keyboard 1
 		Save()
-	elseif keyp(29) then
+	elseif keyp(29) then --keyboard 2
 		Load()
-	elseif keyp(30) then
+	elseif keyp(30) then --keyboard 3
 		--TIC=GameOver
 		p.curLife=0
 	end
@@ -858,6 +889,9 @@ function Update()
 	if keyp(46) then
 		table.insert(quest,1)
 		p.onQuest=1
+	end
+	if keyp(45) then
+		table.remove(quest,1)
 	end
 	--[[trying to delete entities]]
 	if keyp(41) then
@@ -1043,6 +1077,7 @@ function Dead()
 				ents[k]=nil
 			end
 			p.curLife=1
+			pt=0
 			TIC=GameOver
 		end
 	end
@@ -1206,7 +1241,11 @@ function Town()
 	--[[When the town loads it is spawning ents to the whole map on bank 0
 	this is not affecting ents on bank 1 unsure why not]]
 	--EntLocations()
-	
+	--[[Qnum stores the value of what level the player was on
+	into the save state and this restores it. A table can't
+	be saved to pmem so I get the number of the level save it
+	and restore the table to that level by looping to that
+	point]]
 	while qnum>0 do
 		table.insert(quest,1)
 		qnum=qnum-1
@@ -1225,7 +1264,7 @@ function Town()
 	if (mget(p.x//8,p.y//8)==s.startSign or mget(p.x//8+2,p.y//8)==s.startSign or mget(p.x//8+1,p.y//8)==s.startSign) and p.onQuest==1 then
 		spr(ctrlx(),p.x-cam.x+4,p.y-cam.y-8+math.sin(time()//90),0)		
 	end
-	--
+	--This is the quest giver code
 	if (fget(mget(p.x//8,p.y//8),2) or fget(mget(p.x//8-1,p.y//8+1),2)) and btnp(c.a) and p.onQuest==0 and not msgbox then
 		p.canMove=false
 		msgbox=true
@@ -1514,7 +1553,7 @@ function Save()
 		pmem(13,savX)
 		pmem(14,savY)	
 		pmem(15,savMeter)
-		pmem(16,#quest)
+		pmem(16,#quest) --stores the number of items in the quest table
 		pmem(17,p.coins)
 		pmem(18,stabplus)
 		pmem(19,backpack)
@@ -1530,7 +1569,7 @@ function Load()
 		p.x=pmem(2)
 		p.y=pmem(3)
 		meterY=pmem(4)
-		qnum=pmem(5)
+		qnum=pmem(5) --gives the number of items that were in the table. the loop in Town() restores that number to the table
 		p.coins=pmem(6)
 		stabplus=pmem(7)
 		backpack=pmem(8)
@@ -1553,6 +1592,21 @@ function Load()
 		end
 		p.onQuest=pmem(20)
 	end
+end
+
+function Reload()
+	sync(0,0,false)
+	MapCoord(0,59,0,0,21,12)
+	p.flp=0
+	p.stab=51
+	meterY=16
+	p.inTown=true
+	p.onQuest=1
+	sky=14
+	--this is not great...but works
+	table.remove(quest,1)
+	table.remove(quest,1)
+	Load()
 end
 
 function AddEnt(t)
@@ -2035,6 +2089,10 @@ function deleteallps()
 end
 
 function MapCoord(ms,me,myt,myb,px,py)
+	--[[mapStart is top left corner of the starting map.
+	mapEnd is the top right corner of the end length
+	mapY is top corner y for height of map
+	mapEndy is the top corner of the lowest the map can go]]
 	mapStart=ms*8
 	mapEnd=me*8
 	mapY=myt*8
@@ -3847,17 +3905,17 @@ fps=FPS:new()
 -- 014:00000000000000000000000000000000000000000000000000000000000ccccc
 -- 015:00000000000000000000000000000000000000000000000000000000c00000c0
 -- 016:000cc55d00c8c5de00c88ccc000ccd110000cccc0000cddc0000cc5c00000ccc
--- 017:dccc3550ec8c3350c88ccc00ddcc0000cccc0000cddc0000cc5c0000cccc0000
+-- 017:dccc3550ec7c3350c88ccc00ddcc0000cccc0000cddc0000cc5c0000cccc0000
 -- 018:000cc55d00c8c5de00c88ccc000ccd110000cccc0000cddc0000cc5c00000ccc
--- 019:dccc5550ec8c3550c88c3350ddcccc00cccc0000cddc0000cc5c0000cccc0000
+-- 019:dccc5550ec7c3550c88c3350ddcccc00cccc0000cddc0000cc5c0000cccc0000
 -- 020:0000c55d000cc5de00c8cccc00c88d11000ccccc0000cddc0000cc5c00000ccc
--- 021:dccc5550ecec3550cc8c3350d88ccc00cccc0000cddc0000cc5c0000cccc0000
+-- 021:dccc5550ecec3550cc7c3350d88ccc00cccc0000cddc0000cc5c0000cccc0000
 -- 022:000cc55d00c8c5de00c88ccc000ccd110000cccc0000cddc0000cc5c00000ccc
--- 023:dccc3550ec8c3350c88ccc00ddcc0000cccc0000cddc0000cc5c0000cccc0000
+-- 023:dccc3550ec7c3350c88ccc00ddcc0000cccc0000cddc0000cc5c0000cccc0000
 -- 024:0000c5550000c555000c8ccc000c8ddd0000cccc00000cd500000ccc00000000
--- 025:5ccc55505c8c3550cc8c3350ddcccc00cccc0000cddc0000ccc5c00000ccc000
+-- 025:5ccc55505c7c3550cc8c3350ddcccc00cccc0000cddc0000ccc5c00000ccc000
 -- 026:0000c5550000c5550000c55500000ccc00000cdd00000ccc000000c50000000c
--- 027:55c125505ccc5550558cd550cc8cdd50ddcccc00cccc0000cddc0000cccc0000
+-- 027:55c125505ccc5550557cd550cc8cdd50ddcccc00cccc0000cddc0000cccc0000
 -- 028:0000c5550000c555000cc555000c1555000cc1cc0000cccd0000000500000000
 -- 029:5515255055c155505cccd5505c1cdd50cc1ccc00dddcc0001cc1c000ccccc000
 -- 030:0ccddc550c5cdc5500ccdcc50c5ddce50cccc35e0c88133c0c88c13300555522
@@ -5175,6 +5233,7 @@ fps=FPS:new()
 -- 019:030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300305000000000
 -- 032:210041006100710081009100b100c100d100e100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100305000000000
 -- 033:010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100300000000000
+-- 063:f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000f000000300000000
 -- </SFX6>
 
 -- <SFX7>
@@ -5189,6 +5248,7 @@ fps=FPS:new()
 -- 019:030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300030003000300305000000000
 -- 032:210041006100710081009100b100c100d100e100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100f100305000000000
 -- 033:010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100010001000100300000000000
+-- 063:000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000000300000000
 -- </SFX7>
 
 -- <FLAGS>
