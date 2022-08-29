@@ -5,8 +5,8 @@
 -- input:  gamepad
 -- saveid: beta
 
-ver="v 0.8c"
-releaseBuild=true
+ver="v 0.9c"
+releaseBuild=false
 --Simplify math operations. Floor will round a decimal down
 flr=math.floor
 ceil=math.ceil
@@ -75,7 +75,7 @@ p={
 	curLife=3,
 	maxLife=3,
 	coins=0,
-	stab=51,
+	stab=16,
 	stabPot=0,
 	stabPotMax=3,
 	s={
@@ -166,6 +166,9 @@ selMov=37
 save=200
 saving=false
 reload=false
+pto=0
+sslide=110
+mslide=110
 
 screenShake=false
 
@@ -256,20 +259,22 @@ function HUD()
 	--string.format to display 00
 	print(string.format("x%02d",p.coins),39,6,0,true,1,false)
 	--Potion
-	rect(7,meterY,2,p.stab,meterC)
+	--rect(7,meterY,2,p.stab,meterC)
+	line(7,p.stab,7,66,meterC)
+	line(8,p.stab,8,66,meterC)
 	line(7,15,8,15,0)
 	line(6,16,6,65,0)
 	line(9,16,9,65,0)
 	line(7,66,8,66,0)
 	if p.curLife==0 then
 		spr(454,4,68,6)
-	elseif p.stab<5 then
+	elseif p.stab>60 then
 		spr(453,4+t%rnd(1,4),68+t%rnd(1,2),6)
 		meterC=3
-	elseif p.stab<15 then
+	elseif p.stab>45 then
 		spr(453,4+t%rnd(1,2),68,6)
 		meterC=7
-	elseif p.stab<26 then
+	elseif p.stab>30 then
 		spr(453,4,68,6)
 		meterC=8
 	else
@@ -277,7 +282,7 @@ function HUD()
 		meterC=10
 	end
  
- if--[[(time()%500>250) and]] p.stab<=10 and p.curLife>0 then
+ if--[[(time()%500>250) and]] p.stab>=60 and p.curLife>0 then
  	xprint("WARNING!",
 										40,18,{0,3},false,1,false,
 										0,false,0.5)
@@ -436,6 +441,16 @@ function Menu()
 	--print(slotUn.." "..pmem(10))
 	spr(256,w/2-64,h/2-64,11,1,0,0,16,16)
 	keyb=pmem(30)
+	if pmem(31)==0 then
+		sslide=110
+	else
+		sslide=pmem(31)
+	end
+	if pmem(32)==0 then
+		mslide=110
+	else
+		mslide=pmem(32)
+	end
 	
 	AddWin(w/2,h/2,64,29,12,"  New Game\n\n  Options\n  Exit")
 	if pmem(10)==1 or pmem(21)==1 then
@@ -493,6 +508,19 @@ function NewGame()
 	
 	print("Slot 1",104,34,0)
 	print("Slot 2",104,68,0)
+	rect(125,105,152,113,12)
+	if keyb==1 then
+		spr(243,126,105,0)
+	elseif keyb==0 then
+		spr(225,126,105,0)
+	end
+	print("Back",136,107,0,false,1,true)
+	
+	--spr(ctrlx(),120,43,0)
+
+	xprint("New Game",w/2+1,20,{0,12},false,2,false,0)
+	--xprint(txt,x,y,col,fixed,scale,smallfont,align,thin,blink)
+	--print("New Game",104,25,0,false,2,false)
 	--Warning
 	if pmem(10)==1 or pmem(21)==1 then
 		spr(233,75,119,5,1,0,0,2,2)
@@ -595,6 +623,14 @@ function LoadGame()
 	
 	print("Slot 1",104,34,0)
 	print("Slot 2",104,68,0)
+	rect(125,105,152,113,12)
+	if keyb==1 then
+		spr(243,126,105,0)
+	elseif keyb==0 then
+		spr(225,126,105,0)
+	end
+	print("Back",136,107,0,false,1,true)
+	xprint("Load Game",w/2+1,20,{0,12},false,2,false,0)
 	--Hide all the graphics if a save doesn't exist.
 	if slot1Used==1 then
 		--Slot 1
@@ -707,9 +743,6 @@ function GameOver()
 	end
 end
 
-pto=0
-sslide=110
-mslide=110
 function Options()
 	cls(12)
 	--spr(256,w/2-64,h/2-64,11,1,0,0,16,16)
@@ -763,20 +796,20 @@ function Options()
 	elseif pto==0 then
 		pto=0
 	end
-	
+	--keyboard/controller
 	if btnp(c.r) and pto==0 and keyb==1 then
 		keyb=0
 	elseif btnp(c.l) and pto==0 and keyb==0 then
 		keyb=1
 	end
-
-	if btnp(c.r) and sslide<=201 and pto==12 then
+	--sound fx vol
+	if btnp(c.r,2,10) and sslide<=201 and pto==12 then
 		sslide=sslide+7
-	elseif btnp(c.l) and sslide>=117 and pto==12 then
+	elseif btnp(c.l,2,10) and sslide>=117 and pto==12 then
 		sslide=sslide-7
 	end
-
-	if btnp(c.r) and mslide<=201 and pto==24 then
+	--music fx vol
+	if btnp(c.r,2,10) and mslide<=201 and pto==24 then
 		mslide=mslide+7
 	elseif btnp(c.l) and mslide>=117 and pto==24 then
 		mslide=mslide-7
@@ -794,7 +827,11 @@ function Options()
 	end
 
 	if btnp(c.a) and pto==48 then
+		pto=0
 		pmem(30,keyb)
+		pmem(31,sslide)
+		pmem(32,mslide)
+		
 		TIC=Menu
 	end
 end
@@ -914,7 +951,7 @@ function Player(o)
 				p.idx=p.s.run+t%80//10*2
 				t=time()//5
 				if not p.inTown then
-					p.stab=p.stab-.1
+					p.stab=p.stab+.1
 					meterY=meterY+.1
 				end
 			end
@@ -925,7 +962,7 @@ function Player(o)
 				p.idx=p.s.run+t%80//10*2
 				t=time()//5
 				if not p.inTown then
-					p.stab=p.stab-.1
+					p.stab=p.stab+.1
 					meterY=meterY+.1
 				end
 			end
@@ -955,7 +992,7 @@ function Player(o)
 		p.vy=-3.6
 		p.grounded=false
 		if not p.inTown then
-			p.stab=p.stab-1
+			p.stab=p.stab+1
 			meterY=meterY+1
 		end
 		if fget(mget(p.x//8,p.y//8),5) then
