@@ -76,7 +76,7 @@ p={
 	maxLife=3,
 	coins=0,
 	stab=16,
-	stabPot=0,
+	stabPot=3,
 	stabPotMax=3,
 	s={
 		idle=256,
@@ -1095,15 +1095,31 @@ function Player(o)
 	end
 end
 
+function Respawn()
+	if p.curLife>=0 then
+		Explode()
+		p.idx=p.s.dead
+		p.canMove=false
+		AddWin(w/2,h/2-30,84,30,2,"Oh no!\nThe potion exploded!\nPress B to\ntry again.")
+		if p.stab>=66 and p.curLife>0 and btnp(c.b) then
+			p.curLife=p.curLife-1
+			p.x=p.cpX
+			p.y=p.cpY
+			p.flp=p.cpF
+			p.stab=16
+			meterY=16
+		else
+			Dead()
+		end
+	end
+end
+
 function Dead()
-	--[[not sure how to handle this once the player dies?
-	do they just start the level over or is it game over
-	and they go back to the last save?]]
 	timer=0
 	if p.curLife==0 then
 		Explode()
 		p.canMove=false
-		p.stab=0
+		p.stab=66
 		p.coins=0
 		AddWin(w/2,h/2-30,64,24,2,"You Died!")
 		spr(ctrla(),146,45+math.sin(time()//90),0)
@@ -1113,47 +1129,40 @@ function Dead()
 			for k in pairs(ents) do
 				ents[k]=nil
 			end
-			p.curLife=1
+			p.curLife=1 --this is here for when i run in non-release
 			pt=0
 			TIC=GameOver
 		end
 	end
 end
---[[should probably move the p.stab/meterY to its own
-function then return it back]]
+
 function Damage()
+	local canRespawn=false
+	
 	if p.vy>2 then
-		p.stab=p.stab-.1
+		p.stab=p.stab+.1
 		meterY=meterY+.1
 	end
+	
 	if p.vy>4 then
-		p.stab=p.stab-.5
+		p.stab=p.stab+.5
 		meterY=meterY+.5
 	end
 	--Spikes are flag 7
 	if fget(mget(p.x//8+1,p.y//8+1),7) --[[and fget(mget(p.x//8,p.y//8),7)]] and not p.damaged and p.curLife>0 then
-		p.stab=p.stab-5
+		p.stab=p.stab+5
 		meterY=meterY+5
 		screenShake.active=true
 		p.damaged=true
 		psfx(o,4)
 	end
 	
+	if p.stab>=66 and p.curLife>0 then
+		Respawn()
+	end
+	
 	if p.curLife<=0 then
 		Dead()
-	elseif p.stab<=0 then
-		Explode()
-		p.idx=p.s.dead
-		p.canMove=false
-		AddWin(w/2,h/2-30,84,30,2,"Oh no!\nThe potion exploded!\nPress B to\ntry again.")
-		if p.stab<=0 and p.curLife>0 and btnp(c.b) then
-			p.curLife=p.curLife-1
-			p.x=p.cpX
-			p.y=p.cpY
-			p.flp=p.cpF
-			p.stab=51
-			meterY=16
-		end
 	end
 end
 
@@ -1167,17 +1176,17 @@ function Blinky()
 end
 
 function Stabilizer()
-	if btnp(c.y) and p.stabPot>0 and p.stab>=31 and p.stab<51 then
-		p.stab=51
+	if btnp(c.y) and p.stabPot>0 and p.stab<=36 and p.stab>16 then
+		p.stab=16
 		meterY=16
 		p.stabPot=p.stabPot-1
-	elseif btnp(c.y) and p.stab<31 and p.stabPot>0 then
+	elseif btnp(c.y) and p.stab>36 and p.stabPot>0 then
 		if stabplus then
-			p.stab=p.stab+20
+			p.stab=p.stab-20
 			meterY=meterY-20
 			p.stabPot=p.stabPot-1
 		else
-			p.stab=p.stab+15
+			p.stab=p.stab-15
 			meterY=meterY-15
 			p.stabPot=p.stabPot-1
 		end
