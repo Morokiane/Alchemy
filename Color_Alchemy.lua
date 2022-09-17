@@ -1474,6 +1474,7 @@ function TownTwo()
 		p.cpA=true
 		p.inTown=false
 		EntLocations()
+		p.curLife=3
 	end
 	
 	Enemy()
@@ -1565,6 +1566,7 @@ function BackToTown()
 	meterY=16
 	p.inTown=true
 	sky=14
+	p.curLife=0
 	Save()
 end
 
